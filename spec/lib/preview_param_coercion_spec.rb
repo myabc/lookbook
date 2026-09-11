@@ -50,6 +50,13 @@ RSpec.describe Lookbook::PreviewParamCoercion do
       expect(rendered(UnregisteredPreview, :coerce_symbol, {my_param: "bar"})).to include("class=String")
     end
 
+    it "evaluates an inferred default at most once per scenario across renders" do
+      ParamsComponentPreview.render_args(:coerce_counted_string, params: {label: "x"})
+
+      expect { ParamsComponentPreview.render_args(:coerce_counted_string, params: {label: "y"}) }
+        .not_to change(ParamsComponentPreview, :string_default_evaluations)
+    end
+
     it "does not consult the preview registry on the render path once installed" do
       allow(Lookbook::Engine).to receive(:previews).and_call_original
 

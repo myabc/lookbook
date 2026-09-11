@@ -128,5 +128,15 @@ RSpec.describe "previews", type: :request do
       get lookbook_preview_path("params/coerce_symbol"), params: {my_param: "bar"}
       expect(response.body).to include("my_param=bar class=Symbol")
     end
+
+    it "evaluates an inferred dynamic default once per request" do
+      # First request primes the render-path cache; the second one measures
+      # controller casting + render_args together.
+      get lookbook_preview_path("params/coerce_counted_string"), params: {label: "x"}
+
+      expect { get lookbook_preview_path("params/coerce_counted_string"), params: {label: "x"} }
+        .to change(ParamsComponentPreview, :string_default_evaluations).by(1)
+      expect(response.body).to include("label=x class=String")
+    end
   end
 end

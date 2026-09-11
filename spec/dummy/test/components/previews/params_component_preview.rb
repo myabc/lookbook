@@ -82,13 +82,30 @@ class ParamsComponentPreview < ViewComponent::Preview
     end
   end
 
-  # Side-effecting default, used by specs to prove that casting a typed param
-  # never evaluates the scenario's default expression.
+  # @param label text
+  def coerce_counted_string(label: ParamsComponentPreview.count_string_default!)
+    render StandardComponent.new do
+      "label=#{label} class=#{label.class}"
+    end
+  end
+
+  # Side-effecting defaults, used by specs to prove that casting a typed param
+  # never evaluates the scenario's default expression, and that an inferred
+  # (untyped, dynamic String) default is evaluated once per request.
   def self.default_evaluations
     @default_evaluations ||= 0
   end
 
   def self.count_default_evaluation!
     @default_evaluations = default_evaluations + 1
+  end
+
+  def self.string_default_evaluations
+    @string_default_evaluations ||= 0
+  end
+
+  def self.count_string_default!
+    @string_default_evaluations = string_default_evaluations + 1
+    "default-#{@string_default_evaluations}"
   end
 end

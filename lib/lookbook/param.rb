@@ -68,13 +68,15 @@ module Lookbook
       StringValueCaster.call(value, value_type)
     end
 
-    def self.from_tag(tag, value: nil)
+    # @param value_default_resolver [#call] overrides how the scenario default is
+    #   resolved, so several Params built from one tag can share one evaluation
+    def self.from_tag(tag, value: nil, value_default_resolver: -> { tag.value_default })
       new(
         name: tag.name,
         input: tag.input || tag.options.input,
         description: tag.description || tag.options.description,
         value_type: tag.value_type || tag.options.value_type,
-        value_default_resolver: -> { tag.value_default },
+        value_default_resolver: value_default_resolver,
         options: tag.options,
         value: value
       )

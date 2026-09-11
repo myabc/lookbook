@@ -74,6 +74,18 @@ RSpec.describe Lookbook::ParamsCoercer do
         .not_to change(ParamsComponentPreview, :default_evaluations)
     end
 
+    it "shares one evaluation of an inferred default between params_list, cast! and the UI" do
+      counted = described_class.new(preview.scenario("coerce_counted_string"))
+      params = {"label" => "x"}
+
+      expect {
+        list = counted.params_list(params)
+        counted.cast!(params)
+        list.each(&:value_default)
+      }.to change(ParamsComponentPreview, :string_default_evaluations).by(1)
+      expect(params).to eq({"label" => "x"})
+    end
+
     it "does not evaluate defaults when the tag declares a type (unit)" do
       tag = tag_double(name: "num", value_type: "integer")
 
