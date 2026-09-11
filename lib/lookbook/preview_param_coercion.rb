@@ -39,7 +39,7 @@ module Lookbook
         coercer = coercers(preview_class)[scenario.to_s]
         return params if coercer.nil? || coercer.param_tags.empty?
 
-        coercer.coerce(params)
+        coercer.cast(params)
       rescue => exception
         # Coercion must never raise out of `render_args`: fall back to the
         # original params if anything unexpectedly fails.

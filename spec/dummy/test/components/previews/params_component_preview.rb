@@ -67,4 +67,28 @@ class ParamsComponentPreview < ViewComponent::Preview
       "sym=#{sym.class} flag=#{flag.class} num=#{num.class}"
     end
   end
+
+  # @param my_param select [foo, bar]
+  def coerce_inferred(my_param: :foo)
+    render StandardComponent.new do
+      "my_param=#{my_param} class=#{my_param.class}"
+    end
+  end
+
+  # @param num [Integer] number
+  def coerce_counted(num: ParamsComponentPreview.count_default_evaluation!)
+    render StandardComponent.new do
+      "num=#{num} class=#{num.class}"
+    end
+  end
+
+  # Side-effecting default, used by specs to prove that casting a typed param
+  # never evaluates the scenario's default expression.
+  def self.default_evaluations
+    @default_evaluations ||= 0
+  end
+
+  def self.count_default_evaluation!
+    @default_evaluations = default_evaluations + 1
+  end
 end

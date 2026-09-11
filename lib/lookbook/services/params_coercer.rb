@@ -13,7 +13,7 @@ module Lookbook
     end
 
     # Build a `Param` for each declared `@param` tag, reading its raw
-    # (uncoerced) value from `params`.
+    # (uncoerced) value from `params`. Used to render the params panel.
     #
     # @return [Array<Param>]
     def params_list(params)
@@ -26,32 +26,36 @@ module Lookbook
     #
     # Keys that were not provided are left alone, as are values that are not
     # raw strings - which makes coercion idempotent, so a params object that
-    # has already been cast upstream passes through unchanged.
+    # has already been cast upstream passes through unchanged. A scenario
+    # default is only evaluated when the tag declares no type and it is
+    # needed to infer one.
     #
-    # @return [Array<Param>] the params built from the raw values
-    def apply!(params)
-      params_list(params).each do |param|
-        key = key_for(params, param.name)
+    # @return [Hash, ActionController::Parameters] the supplied `params` object
+    def cast!(params)
+      param_tags.each do |tag|
+        key = key_for(params, tag.name)
         next if key.nil?
         next unless params[key].is_a?(String)
 
         begin
-          params[key] = param.cast_value
+          params[key] = Param.from_tag(tag, value: params[key]).cast_value
         rescue => exception
           # Warn rather than debug: a failure here usually means a malformed
-          # `@param` tag, and the value silently passing through uncoerced makes
-          # the resulting failure point somewhere else entirely.
-          Lookbook.logger.warn("Param coercion failed for '#{param.name}' (value passed through uncoerced): #{exception.message}")
+          # `@param` tag or an uninferrable default, and the value silently
+          # passing through uncoerced makes the resulting failure point
+          # somewhere else entirely.
+          Lookbook.logger.warn("Param coercion failed for '#{tag.name}' (value passed through uncoerced): #{exception.message}")
         end
       end
+      params
     end
 
-    # Non-mutating variant of {#apply!}, for callers that must not modify the
+    # Non-mutating variant of {#cast!}, for callers that must not modify the
     # params object handed to them.
     #
     # @return [Hash, ActionController::Parameters] a coerced copy of `params`
-    def coerce(params)
-      params.dup.tap { |copy| apply!(copy) }
+    def cast(params)
+      cast!(params.dup)
     end
 
     private

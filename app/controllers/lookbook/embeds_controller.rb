@@ -92,8 +92,10 @@ module Lookbook
       @passed_params = req_params.select { |key, value| !key.to_s.start_with?("_") }
 
       if @target
+        coercer = ParamsCoercer.new(@target)
+        @params = coercer.params_list(@passed_params)
         # cast known param values to correct type
-        @params = ParamsCoercer.new(@target).apply!(@passed_params)
+        coercer.cast!(@passed_params)
       end
     end
 

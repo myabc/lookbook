@@ -66,8 +66,10 @@ module Lookbook
       @params = []
 
       if @target
+        coercer = ParamsCoercer.new(@target)
+        @params = coercer.params_list(preview_controller.params)
         # cast known param values to correct type
-        @params = ParamsCoercer.new(@target).apply!(preview_controller.params)
+        coercer.cast!(preview_controller.params)
 
         # set display and data params for use in preview layouts
         preview_controller.params[:lookbook] = {
